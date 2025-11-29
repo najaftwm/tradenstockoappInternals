@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
-import ErrorBoundary from './components/ErrorBoundary.jsx';
 import { ROUTES, TOAST_DURATION } from './constants';
 import { FullPageLoader } from './components/LoadingSpinner.jsx';
 
@@ -124,13 +123,13 @@ function AppContent() {
 
 function App() {
   return (
-    <ErrorBoundary>
+    
       <AuthProvider>
         <Router>
           <AppContent />
         </Router>
       </AuthProvider>
-    </ErrorBoundary>
+    
   );
 }
 
