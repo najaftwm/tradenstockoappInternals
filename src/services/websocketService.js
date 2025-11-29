@@ -1,7 +1,7 @@
-import config from '../config';
+import config from '../config/index.js';
 import logger from '../utils/logger';
 import { WebSocketError } from '../utils/errorHandler';
-import { WS_READY_STATES, WS_TIMEOUTS } from '../constants';
+import { WS_READY_STATES, WS_TIMEOUTS } from '../constants/index.js';
 
 // Global WebSocket Service - Single connection for all components
 class WebSocketService {

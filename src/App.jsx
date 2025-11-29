@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
-import { ROUTES, TOAST_DURATION } from './constants';
+import { ROUTES, TOAST_DURATION } from './constants/index.js';
 import { FullPageLoader } from './components/LoadingSpinner.jsx';
 
 // Lazy load pages for better performance
@@ -20,69 +20,157 @@ const Welcome = lazy(() => import('./pages/Welcome'));
 const Registration = lazy(() => import('./pages/Registration'));
 const OrderTrade = lazy(() => import('./pages/OrderTrade'));
 
-// Loading fallback component
+// Loading fallback for authenticated routes only
 const LoadingFallback = () => <FullPageLoader message="Loading..." />;
+
+// Simple fallback for public routes (no loading spinner before login)
+const PublicFallback = () => <div className="min-h-screen bg-slate-900"></div>;
 
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <Routes>
-        <Route 
-          path={ROUTES.ONBOARDING_STEP_1}
-          element={<OnboardingStep1 />} 
-        />
-        <Route 
-          path={ROUTES.ONBOARDING_STEP_2}
-          element={<OnboardingStep2 />} 
-        />
-        <Route 
-          path={ROUTES.WELCOME}
-          element={<Welcome />} 
-        />
-        <Route 
-          path={ROUTES.LOGIN}
-          element={isAuthenticated ? <Navigate to={ROUTES.DASHBOARD} /> : <Login />} 
-        />
-        <Route 
-          path={ROUTES.REGISTRATION}
-          element={isAuthenticated ? <Navigate to={ROUTES.DASHBOARD} /> : <Registration />} 
-        />
-        <Route 
-          path={ROUTES.DASHBOARD}
-          element={isAuthenticated ? <Dashboard /> : <Navigate to={ROUTES.LOGIN} />} 
-        />
-        <Route 
-          path={ROUTES.MARKET_WATCH}
-          element={isAuthenticated ? <MarketWatch /> : <Navigate to={ROUTES.LOGIN} />} 
-        />
-        <Route 
-          path={ROUTES.ORDER_TRADE}
-          element={isAuthenticated ? <OrderTrade /> : <Navigate to={ROUTES.LOGIN} />} 
-        />
-        <Route 
-          path={ROUTES.ORDERS}
-          element={isAuthenticated ? <Orders /> : <Navigate to={ROUTES.LOGIN} />} 
-        />
-        <Route 
-          path={ROUTES.PORTFOLIO}
-          element={isAuthenticated ? <Portfolio /> : <Navigate to={ROUTES.LOGIN} />} 
-        />
-        <Route 
-          path={ROUTES.TOOLS}
-          element={isAuthenticated ? <Tools /> : <Navigate to={ROUTES.LOGIN} />} 
-        />
-        <Route 
-          path={ROUTES.PROFILE}
-          element={isAuthenticated ? <Profile /> : <Navigate to={ROUTES.LOGIN} />} 
-        />
-        <Route 
-          path={ROUTES.ROOT}
-          element={<Navigate to={ROUTES.ONBOARDING_STEP_1} />} 
-        />
-      </Routes>
-    </Suspense>
+    <Routes>
+      {/* Public routes - NO loading spinner */}
+      <Route 
+        path={ROUTES.ONBOARDING_STEP_1}
+        element={
+          <Suspense fallback={<PublicFallback />}>
+            <OnboardingStep1 />
+          </Suspense>
+        } 
+      />
+      <Route 
+        path={ROUTES.ONBOARDING_STEP_2}
+        element={
+          <Suspense fallback={<PublicFallback />}>
+            <OnboardingStep2 />
+          </Suspense>
+        } 
+      />
+      <Route 
+        path={ROUTES.WELCOME}
+        element={
+          <Suspense fallback={<PublicFallback />}>
+            <Welcome />
+          </Suspense>
+        } 
+      />
+      <Route 
+        path={ROUTES.LOGIN}
+        element={
+          isAuthenticated ? (
+            <Navigate to={ROUTES.DASHBOARD} />
+          ) : (
+            <Suspense fallback={<PublicFallback />}>
+              <Login />
+            </Suspense>
+          )
+        } 
+      />
+      <Route 
+        path={ROUTES.REGISTRATION}
+        element={
+          isAuthenticated ? (
+            <Navigate to={ROUTES.DASHBOARD} />
+          ) : (
+            <Suspense fallback={<PublicFallback />}>
+              <Registration />
+            </Suspense>
+          )
+        } 
+      />
+      
+      {/* Authenticated routes - WITH loading spinner */}
+      <Route 
+        path={ROUTES.DASHBOARD}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <Dashboard />
+            </Suspense>
+          ) : (
+            <Navigate to={ROUTES.LOGIN} />
+          )
+        } 
+      />
+      <Route 
+        path={ROUTES.MARKET_WATCH}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <MarketWatch />
+            </Suspense>
+          ) : (
+            <Navigate to={ROUTES.LOGIN} />
+          )
+        } 
+      />
+      <Route 
+        path={ROUTES.ORDER_TRADE}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <OrderTrade />
+            </Suspense>
+          ) : (
+            <Navigate to={ROUTES.LOGIN} />
+          )
+        } 
+      />
+      <Route 
+        path={ROUTES.ORDERS}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <Orders />
+            </Suspense>
+          ) : (
+            <Navigate to={ROUTES.LOGIN} />
+          )
+        } 
+      />
+      <Route 
+        path={ROUTES.PORTFOLIO}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <Portfolio />
+            </Suspense>
+          ) : (
+            <Navigate to={ROUTES.LOGIN} />
+          )
+        } 
+      />
+      <Route 
+        path={ROUTES.TOOLS}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <Tools />
+            </Suspense>
+          ) : (
+            <Navigate to={ROUTES.LOGIN} />
+          )
+        } 
+      />
+      <Route 
+        path={ROUTES.PROFILE}
+        element={
+          isAuthenticated ? (
+            <Suspense fallback={<LoadingFallback />}>
+              <Profile />
+            </Suspense>
+          ) : (
+            <Navigate to={ROUTES.LOGIN} />
+          )
+        } 
+      />
+      <Route 
+        path={ROUTES.ROOT}
+        element={<Navigate to={ROUTES.ONBOARDING_STEP_1} />} 
+      />
+    </Routes>
   );
 }
 
@@ -98,7 +186,7 @@ function AppContent() {
   // Show splash screen only on first visit
   if (showSplash && !hasSeenSplash) {
     return (
-      <Suspense fallback={<LoadingFallback />}>
+      <Suspense fallback={<PublicFallback />}>
         <SplashScreen onFinish={handleSplashFinish} />
       </Suspense>
     );
