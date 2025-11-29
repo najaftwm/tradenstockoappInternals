@@ -3,8 +3,10 @@ import { Search, Plus, TrendingUp, ArrowLeft, X, Check, TrendingDown } from 'luc
 import { useNavigate } from 'react-router-dom';
 import { tradingAPI } from '../services/api';
 import OrderModal from '../components/OrderModal';
+import PremiumLoader from '../components/PremiumLoader';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { FullPageLoader, InlineLoader } from '../components/LoadingSpinner';
 
 const MarketWatch = () => {
   const navigate = useNavigate();
@@ -827,36 +829,7 @@ const MarketWatch = () => {
     return 'text-white';
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#02050a] flex items-center justify-center relative overflow-hidden">
-        {/* Background effects */}
-        <div className="fixed inset-0 pointer-events-none z-0">
-          <div 
-            className="absolute top-0 left-0 w-[600px] h-[600px] rounded-full blur-[120px] opacity-30"
-            style={{
-              background: 'radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%)',
-            }}
-          ></div>
-          <div 
-            className="absolute bottom-0 right-0 w-[600px] h-[600px] rounded-full blur-[120px] opacity-30"
-            style={{
-              background: 'radial-gradient(circle, rgba(34, 197, 94, 0.4) 0%, transparent 70%)',
-            }}
-          ></div>
-        </div>
-        <div className="text-center relative z-10">
-          <div 
-            className="animate-spin rounded-full h-12 w-12 border-2 border-cyan-500 border-t-transparent mx-auto mb-4"
-            style={{
-              boxShadow: '0 0 30px rgba(6, 182, 212, 0.6)',
-            }}
-          ></div>
-          <p className="text-white font-medium" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>Loading market data...</p>
-        </div>
-      </div>
-    );
-  }
+  // Don't show full-page loader, show inline loader instead
 
   const currentSymbols = marketData[activeTab] || [];
   
@@ -869,65 +842,18 @@ const MarketWatch = () => {
       });
 
   return (
-    <div className="h-screen relative overflow-hidden flex flex-col" style={{ background: 'radial-gradient(ellipse at center, rgba(15, 23, 42, 0.98) 0%, rgba(2, 6, 23, 1) 60%, rgba(1, 3, 15, 1) 100%)' }}>
-      {/* Phase 1: Immersive Deep Background - Radial Galactic Gradient */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        {/* Deep Blue-to-Black Radial Gradient - Brightens towards center */}
-        <div 
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[2000px] h-[2000px] rounded-full"
-          style={{
-            background: 'radial-gradient(circle, rgba(15, 23, 42, 0.6) 0%, rgba(8, 15, 30, 0.8) 30%, rgba(2, 6, 23, 0.95) 60%, rgba(1, 3, 15, 1) 100%)',
-          }}
-        ></div>
-        
-        {/* Ambient Diffused Lighting - Cool-toned ambient light source */}
-        <div 
-          className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[1600px] h-[1600px] rounded-full blur-[300px]"
-          style={{
-            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, rgba(6, 182, 212, 0.05) 30%, transparent 70%)',
-            opacity: 0.6,
-          }}
-        ></div>
-      </div>
+    <div className="min-h-screen sm:h-screen relative overflow-auto sm:overflow-hidden flex flex-col bg-slate-900">
 
-      {/* Ultra-Fine Animated Grid Overlay - Barely Visible with Parallax/Shimmer */}
-      <div 
-        className="fixed inset-0 pointer-events-none z-0 premium-grid-overlay"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(30, 41, 59, 0.15) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(30, 41, 59, 0.15) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px',
-          opacity: 0.25,
-          mixBlendMode: 'overlay',
-        }}
-      ></div>
-
-      {/* Phase 2: Header Section - Frosted Glass Panel with Edge Highlights - Fixed on Mobile */}
-      <div className="flex-shrink-0 relative z-20 sticky top-0" style={{ transform: 'translateZ(0)' }}>
+      {/* Phase 2: Header Section - Fixed on Desktop Only */}
+      <div className="flex-shrink-0 z-20 sm:sticky sm:top-0">
         <div 
-          className="backdrop-blur-[15px] relative"
+          className="backdrop-blur-md"
           style={{
-            background: 'rgba(0, 0, 0, 0.4)',
-            boxShadow: '0 0 5px rgba(74, 144, 226, 0.3) inset, 0 2px 10px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.05) inset',
+            background: 'rgba(0, 0, 0, 0.5)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
             borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           }}
         >
-          {/* Fine Edge Highlight - Top and Bottom */}
-          <div 
-            className="absolute top-0 left-0 right-0 h-[1px] pointer-events-none"
-            style={{
-              background: 'linear-gradient(90deg, transparent 0%, rgba(74, 144, 226, 0.4) 20%, rgba(74, 144, 226, 0.5) 50%, rgba(74, 144, 226, 0.4) 80%, transparent 100%)',
-              boxShadow: '0 0 8px rgba(74, 144, 226, 0.3)',
-            }}
-          ></div>
-          <div 
-            className="absolute bottom-0 left-0 right-0 h-[1px] pointer-events-none"
-            style={{
-              background: 'linear-gradient(90deg, transparent 0%, rgba(74, 144, 226, 0.2) 20%, rgba(74, 144, 226, 0.3) 50%, rgba(74, 144, 226, 0.2) 80%, transparent 100%)',
-            }}
-          ></div>
           
           <div className="px-4 sm:px-6 py-3 sm:py-4 relative">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
@@ -988,7 +914,7 @@ const MarketWatch = () => {
                     }}
                     onFocus={(e) => {
                       e.target.style.border = '1px solid #4A90E2';
-                      e.target.style.boxShadow = 'inset 0px 2px 4px 0px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(74, 144, 226, 0.3), 0 0 8px rgba(74, 144, 226, 0.2)';
+                      e.target.style.boxShadow = 'inset 0px 2px 4px 0px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(74, 144, 226, 0.3)';
                     }}
                     onBlur={(e) => {
                       e.target.style.border = '1px solid rgba(255, 255, 255, 0.15)';
@@ -1000,27 +926,27 @@ const MarketWatch = () => {
                       color: rgba(200, 200, 200, 0.7) !important;
                       font-weight: 300 !important;
                       font-size: 0.875rem !important;
-                      font-style: italic !important;
+                    
                     }
                   `}</style>
-                  {/* Plus Button - Glowing Orb Effect with Soft Pulsating Glow */}
+                  {/* Plus Button - Clean Premium Style */}
                   <button
                     onClick={handleSearchModalOpen}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 rounded-full transition-all duration-200 flex-shrink-0 premium-pulsing-orb flex items-center justify-center"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 w-8 h-8 rounded-full transition-all duration-200 flex-shrink-0 flex items-center justify-center"
                     style={{
-                      background: 'radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 1), rgba(14, 116, 144, 1))',
-                      boxShadow: '0 0 12px rgba(59, 130, 246, 0.5), 0 0 20px rgba(14, 116, 144, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                      background: 'linear-gradient(135deg, rgba(59, 130, 246, 1), rgba(14, 116, 144, 1))',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = '0 0 16px rgba(59, 130, 246, 0.7), 0 0 28px rgba(14, 116, 144, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
                       e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = '0 0 12px rgba(59, 130, 246, 0.5), 0 0 20px rgba(14, 116, 144, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
                       e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
                     }}
                   >
-                    <Plus className="w-4 h-4 text-white" style={{ filter: 'drop-shadow(0 0 2px rgba(255, 255, 255, 0.8))' }} />
+                    <Plus className="w-4 h-4 text-white" />
                   </button>
                 </div>
               </div>
@@ -1029,12 +955,11 @@ const MarketWatch = () => {
         </div>
       </div>
 
-      {/* Phase 2: Navigation Tabs - Underline Style - Fixed on Mobile */}
+      {/* Phase 2: Navigation Tabs - Fixed on Desktop Only */}
       <div 
         ref={tabsContainerRef}
-        className="flex-shrink-0 relative z-20 sticky top-[var(--header-height,auto)] overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-4 sm:px-6 py-3 border-b"
+        className="flex-shrink-0 z-20 sm:sticky sm:top-[var(--header-height,auto)] overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-4 sm:px-6 py-3 border-b"
         style={{ 
-          transform: 'translateZ(0)',
           borderColor: 'rgba(255, 255, 255, 0.08)',
         }}
       >
@@ -1086,7 +1011,6 @@ const MarketWatch = () => {
                     className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
                     style={{
                       background: 'linear-gradient(90deg, rgba(59, 130, 246, 1), rgba(6, 182, 212, 1))',
-                      boxShadow: '0 0 8px rgba(59, 130, 246, 0.6)',
                       animation: 'slideIn 0.2s ease-out',
                     }}
                   />
@@ -1098,14 +1022,16 @@ const MarketWatch = () => {
       </div>
 
       {/* Phase 2: Market Watch Table - Dominant Glassmorphism Panel */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto relative z-10 px-3 sm:px-6 pb-24 premium-scrollbar" style={{ transform: 'translateZ(0)', minHeight: 0 }}>
-        {filteredSymbols.length > 0 ? (
+      <div ref={scrollContainerRef} className="flex-1 overflow-visible sm:overflow-y-auto relative z-10 px-3 sm:px-6 pb-2 sm:pb-6 premium-scrollbar" style={{ minHeight: 0 }}>
+        {loading ? (
+          <InlineLoader message="Loading market data..." size="md" />
+        ) : filteredSymbols.length > 0 ? (
           <div 
             className="rounded-xl sm:rounded-2xl backdrop-blur-[25px] mt-3 sm:mt-4 overflow-hidden relative"
             style={{
               background: 'rgba(255, 255, 255, 0.04)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
-              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(74, 144, 226, 0.05)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
             }}
           >
             {/* Noise Texture Overlay */}
@@ -1241,9 +1167,8 @@ const MarketWatch = () => {
               // Format symbol name with slash for crypto/forex/commodity
               const symbolDisplay = formatSymbolWithSlash(symbolNameParts[0] || 'N/A', symbol.ExchangeType || activeTab);
               
-              // Extract and format date for MCX, NSE, OPT tabs
-              const showDate = ['MCX', 'NSE', 'OPT'].includes(activeTab);
-              const datePart = showDate && symbolNameParts.length > 1 ? symbolNameParts[1] : null;
+              // Extract and format date for all tabs
+              const datePart = symbolNameParts.length > 1 ? symbolNameParts[1] : null;
               const formattedDate = datePart ? parseAndFormatDate(datePart) : null;
               
               if (isFXTab) {
@@ -1268,11 +1193,17 @@ const MarketWatch = () => {
                 const exchangeType = symbol.ExchangeType || activeTab;
                 const symbolName = symbol.SymbolName || '';
                 const ltpPrice = parseFloat(symbol.ltpUSD || symbol.ltp || 0);
-                const chgPrice = parseFloat(symbol.chgUSD !== undefined ? symbol.chgUSD : symbol.chg || 0);
+                let chgPrice = parseFloat(symbol.chgUSD !== undefined ? symbol.chgUSD : symbol.chg || 0);
                 const highPrice = parseFloat(symbol.high || 0);
                 const lowPrice = parseFloat(symbol.low || 0);
                 const openPrice = parseFloat(symbol.open || 0);
                 const closePrice = parseFloat(symbol.closeUSD || symbol.close || 0);
+                
+                // Validate change value - if it's unreasonably large compared to LTP, set to 0
+                // Reasonable change should be less than 50% of LTP for most cases
+                if (ltpPrice > 0 && Math.abs(chgPrice) > (ltpPrice * 0.5)) {
+                  chgPrice = 0;
+                }
                 
                 ltpDisplay = ltpPrice > 0 ? formatFXPrice(ltpPrice, exchangeType, symbolName) : '-';
                 chgDisplay = chgPrice !== 0 ? (chgPrice > 0 ? '+' : '') + formatFXPrice(chgPrice, exchangeType, symbolName) : '-';
@@ -1282,11 +1213,17 @@ const MarketWatch = () => {
                 closeDisplay = closePrice > 0 ? formatFXPrice(closePrice, exchangeType, symbolName) : '-';
               } else {
                 const ltpPrice = parseFloat(symbol.ltp || 0);
-                const chgPrice = parseFloat(symbol.chg || 0);
+                let chgPrice = parseFloat(symbol.chg || 0);
                 const highPrice = parseFloat(symbol.high || 0);
                 const lowPrice = parseFloat(symbol.low || 0);
                 const openPrice = parseFloat(symbol.open || 0);
                 const closePrice = parseFloat(symbol.close || 0);
+                
+                // Validate change value - if it's unreasonably large compared to LTP, set to 0
+                // Reasonable change should be less than 50% of LTP for most cases
+                if (ltpPrice > 0 && Math.abs(chgPrice) > (ltpPrice * 0.5)) {
+                  chgPrice = 0;
+                }
                 
                 ltpDisplay = ltpPrice > 0 ? ltpPrice.toString() : '-';
                 chgDisplay = chgPrice !== 0 ? (chgPrice > 0 ? '+' : '') + chgPrice.toString() : '-';
@@ -1310,27 +1247,13 @@ const MarketWatch = () => {
               return (
                 <div
                   key={symbol.SymbolToken}
-                  className="grid grid-cols-[1.5fr_1fr_1fr] sm:grid-cols-[1.5fr_0.9fr_0.9fr_0.8fr_0.8fr_0.8fr_0.8fr_0.8fr_0.8fr_0.7fr_0.8fr] gap-2 sm:gap-1 px-3 sm:px-3 py-3.5 sm:py-2.5 border-b transition-all duration-150 cursor-pointer group touch-manipulation relative active:bg-opacity-20"
+                  className="grid grid-cols-[1.5fr_1fr_1fr] sm:grid-cols-[1.5fr_0.9fr_0.9fr_0.8fr_0.8fr_0.8fr_0.8fr_0.8fr_0.8fr_0.7fr_0.8fr] gap-2 sm:gap-2 px-3 sm:px-4 py-3.5 sm:py-4 border-b transition-all duration-150 cursor-pointer group touch-manipulation relative active:bg-opacity-20"
                   onClick={() => handleSymbolClick(symbol)}
                   style={{
                     fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
                     borderColor: 'rgba(255, 255, 255, 0.08)',
                     textRendering: 'optimizeLegibility',
                     borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(74, 144, 226, 0.08)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '';
-                  }}
-                  onTouchStart={(e) => {
-                    e.currentTarget.style.background = 'rgba(74, 144, 226, 0.12)';
-                  }}
-                  onTouchEnd={(e) => {
-                    setTimeout(() => {
-                      e.currentTarget.style.background = '';
-                    }, 150);
                   }}
                 >
                   
@@ -1342,7 +1265,7 @@ const MarketWatch = () => {
                     }}>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span 
-                          className="text-sm sm:text-sm text-white font-semibold"
+                          className="text-xs sm:text-sm text-white font-semibold"
                           style={{
                             color: '#FFFFFF',
                             fontWeight: 600,
@@ -1359,8 +1282,6 @@ const MarketWatch = () => {
                               background: '#1A3C6B',
                               color: '#FFFFFF',
                               fontWeight: 500,
-                              fontSize: '0.625rem',
-                              boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 -1px 1px rgba(255, 255, 255, 0.1)',
                               fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
                               textRendering: 'optimizeLegibility',
                             }}
@@ -1375,19 +1296,19 @@ const MarketWatch = () => {
                           </span>
                         )}
                       </div>
-                      <div className="mt-1 flex items-center gap-1.5">
-                        <span className="text-[10px] pr-1 hidden sm:inline" style={{ 
+                      <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[9px] sm:text-[10px] pr-1" style={{ 
                           fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
                           fontWeight: 400,
                           color: '#8090A0',
-                          fontSize: '0.65rem',
+                          fontSize: '0.6rem',
                           textRendering: 'optimizeLegibility',
                         }}>{symbol.ExchangeType}</span>
-                        <span className="text-[10px] hidden sm:inline" style={{ 
+                        <span className="text-[9px] sm:text-[10px]" style={{ 
                           fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
                           fontWeight: 400,
                           color: '#8090A0',
-                          fontSize: '0.65rem',
+                          fontSize: '0.6rem',
                           textRendering: 'optimizeLegibility',
                         }}>Lot: {symbol.Lotsize}</span>
                       </div>
@@ -1396,25 +1317,25 @@ const MarketWatch = () => {
                   
                   {/* ASK Column - Green Button - Mobile & Desktop */}
                   <div className="text-center flex items-center justify-center relative z-10">
-                    <div 
-                      className="px-2 sm:px-2 py-3 sm:py-2 rounded-lg transition-all duration-200 relative overflow-hidden w-full flex items-center justify-center"
-                      style={{
-                        background: 'linear-gradient(135deg, #2ECC71 0%, #27AE60 100%)',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        boxShadow: '0 2px 10px rgba(46, 204, 113, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #27AE60 0%, #229954 100%)';
-                        e.currentTarget.style.transform = 'scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(46, 204, 113, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #2ECC71 0%, #27AE60 100%)';
-                        e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.boxShadow = '0 2px 10px rgba(46, 204, 113, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-                      }}
-                    >
-                      <span className="text-white text-sm sm:text-xs whitespace-nowrap block text-center font-bold" style={{ 
+                  <div 
+                    className="px-2 sm:px-2 py-2.5 sm:py-2 rounded-lg transition-all duration-200 relative overflow-hidden w-full flex items-center justify-center"
+                    style={{
+                      background: 'linear-gradient(135deg, #2ECC71 0%, #27AE60 100%)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #27AE60 0%, #229954 100%)';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                      e.currentTarget.style.boxShadow = '0 3px 8px rgba(0, 0, 0, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #2ECC71 0%, #27AE60 100%)';
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.3)';
+                    }}
+                  >
+                    <span className="text-white text-xs sm:text-xs whitespace-nowrap block text-center font-bold" style={{
                         fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
                         fontWeight: 700,
                         color: '#FFFFFF',
@@ -1430,25 +1351,25 @@ const MarketWatch = () => {
                   
                   {/* BID Column - Red Button - Mobile & Desktop */}
                   <div className="text-center flex items-center justify-center relative z-10">
-                    <div 
-                      className="px-2 sm:px-2 py-3 sm:py-2 rounded-lg transition-all duration-200 relative overflow-hidden w-full flex items-center justify-center"
-                      style={{
-                        background: 'linear-gradient(135deg, #E74C3C 0%, #C0392B 100%)',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        boxShadow: '0 2px 10px rgba(231, 76, 60, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #C0392B 0%, #A93226 100%)';
-                        e.currentTarget.style.transform = 'scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(231, 76, 60, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'linear-gradient(135deg, #E74C3C 0%, #C0392B 100%)';
-                        e.currentTarget.style.transform = 'scale(1)';
-                        e.currentTarget.style.boxShadow = '0 2px 10px rgba(231, 76, 60, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-                      }}
-                    >
-                      <span className="text-white text-sm sm:text-xs whitespace-nowrap block text-center font-bold" style={{ 
+                  <div 
+                    className="px-2 sm:px-2 py-2.5 sm:py-2 rounded-lg transition-all duration-200 relative overflow-hidden w-full flex items-center justify-center"
+                    style={{
+                      background: 'linear-gradient(135deg, #E74C3C 0%, #C0392B 100%)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #C0392B 0%, #A93226 100%)';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                      e.currentTarget.style.boxShadow = '0 3px 8px rgba(0, 0, 0, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #E74C3C 0%, #C0392B 100%)';
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.3)';
+                    }}
+                  >
+                    <span className="text-white text-xs sm:text-xs whitespace-nowrap block text-center font-bold" style={{
                         fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
                         fontWeight: 700,
                         color: '#FFFFFF',
@@ -1766,21 +1687,9 @@ const MarketWatch = () => {
             
             <div className="flex-1 overflow-y-auto -mx-2 px-2 relative z-10">
               {modalLoading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-cyan-500 border-t-transparent mx-auto mb-4" style={{ boxShadow: '0 0 20px rgba(6, 182, 212, 0.5)' }}></div>
-                  <p className="text-slate-400 text-sm font-medium" style={{ 
-                    fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                    textRendering: 'optimizeLegibility',
-                  }}>Loading suggestions...</p>
-                </div>
+                <InlineLoader message="Loading suggestions..." size="sm" />
               ) : searchLoading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-10 w-10 border-2 border-cyan-500 border-t-transparent mx-auto mb-4" style={{ boxShadow: '0 0 20px rgba(6, 182, 212, 0.5)' }}></div>
-                  <p className="text-slate-400 text-sm font-medium" style={{ 
-                    fontFamily: "'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-                    textRendering: 'optimizeLegibility',
-                  }}>Searching...</p>
-                </div>
+                <InlineLoader message="Searching..." size="sm" />
               ) : searchResults.length > 0 ? (
                 <div className="space-y-2">
                   {searchResults.map((symbol) => {

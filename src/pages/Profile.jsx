@@ -847,7 +847,9 @@ const Profile = () => {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 px-2 py-2">
+      <div className="fixed bottom-0 left-0 right-0 backdrop-blur-xl bg-gray-900/80 border-t border-gray-800/50 px-1 py-3 pb-4 z-50" style={{
+        boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3)',
+      }}>
         <div className="flex justify-around items-center max-w-md mx-auto">
           {bottomNavItems.map((item) => (
             <button key={item.id} onClick={() => handleTabClick(item.id)} className="flex flex-col items-center py-2 px-3">

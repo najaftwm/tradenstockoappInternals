@@ -6,6 +6,7 @@ import { tradingAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { useWebSocket } from '../hooks/useWebSocket';
 import webSocketService from '../services/websocketService';
+import { InlineLoader } from '../components/LoadingSpinner';
 
 const getCachedExchangeRate = () => {
   if (typeof window === 'undefined' || !window.localStorage) return null;
@@ -793,9 +794,7 @@ const Orders = () => {
       {/* Scrollable Orders List */}
       <div className="flex-1 overflow-y-auto px-2 py-4 pb-24">
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
+          <InlineLoader message="Loading orders..." size="sm" />
         ) : orders.length > 0 ? (
           <div className="space-y-4">
             {orders.map((order, index) => {
@@ -972,8 +971,10 @@ const Orders = () => {
         )}
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 px-1 py-2">
+      {/* Bottom Navigation Bar - Glass Effect */}
+      <div className="fixed bottom-0 left-0 right-0 backdrop-blur-xl bg-gray-900/80 border-t border-gray-800/50 px-1 py-3 pb-4 z-50" style={{
+        boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3)',
+      }}>
         <div className="flex justify-around items-center">
           {bottomNavItems.map((item) => (
             <button

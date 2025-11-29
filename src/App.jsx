@@ -1,79 +1,89 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { useState, useEffect } from 'react';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import MarketWatch from './pages/MarketWatch';
-import Orders from './pages/Orders';
-import Portfolio from './pages/Portfolio';
-import Tools from './pages/Tools';
-import Profile from './pages/Profile';
-import SplashScreen from './pages/SplashScreen';
-import OnboardingStep1 from './pages/OnboardingStep1';
-import OnboardingStep2 from './pages/OnboardingStep2';
-import Welcome from './pages/Welcome';
-import Registration from './pages/Registration';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
-import OrderTrade from './pages/OrderTrade';
+import ErrorBoundary from './components/ErrorBoundary';
+import { ROUTES, TOAST_DURATION } from './constants';
+import { FullPageLoader } from './components/LoadingSpinner';
+
+// Lazy load pages for better performance
+const Login = lazy(() => import('./pages/Login'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const MarketWatch = lazy(() => import('./pages/MarketWatch'));
+const Orders = lazy(() => import('./pages/Orders'));
+const Portfolio = lazy(() => import('./pages/Portfolio'));
+const Tools = lazy(() => import('./pages/Tools'));
+const Profile = lazy(() => import('./pages/Profile'));
+const SplashScreen = lazy(() => import('./pages/SplashScreen'));
+const OnboardingStep1 = lazy(() => import('./pages/OnboardingStep1'));
+const OnboardingStep2 = lazy(() => import('./pages/OnboardingStep2'));
+const Welcome = lazy(() => import('./pages/Welcome'));
+const Registration = lazy(() => import('./pages/Registration'));
+const OrderTrade = lazy(() => import('./pages/OrderTrade'));
+
+// Loading fallback component
+const LoadingFallback = () => <FullPageLoader message="Loading..." />;
 
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
 
   return (
-    <Routes>
-      <Route 
-        path="/onboarding-step-1" 
-        element={<OnboardingStep1 />} 
-      />
-      <Route 
-        path="/onboarding-step-2" 
-        element={<OnboardingStep2 />} 
-      />
-      <Route 
-        path="/welcome" 
-        element={<Welcome />} 
-      />
-      <Route 
-        path="/login" 
-        element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} 
-      />
-      <Route 
-        path="/registration" 
-        element={isAuthenticated ? <Navigate to="/dashboard" /> : <Registration />} 
-      />
-      <Route 
-        path="/dashboard" 
-        element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} 
-      />
-      <Route 
-        path="/marketwatch" 
-        element={isAuthenticated ? <MarketWatch /> : <Navigate to="/login" />} 
-      />
-      <Route 
-        path="/order/:token" 
-        element={isAuthenticated ? <OrderTrade /> : <Navigate to="/login" />} 
-      />
-      <Route 
-        path="/orders" 
-        element={isAuthenticated ? <Orders /> : <Navigate to="/login" />} 
-      />
-      <Route 
-        path="/portfolio" 
-        element={isAuthenticated ? <Portfolio /> : <Navigate to="/login" />} 
-      />
-      <Route 
-        path="/tools" 
-        element={isAuthenticated ? <Tools /> : <Navigate to="/login" />} 
-      />
-      <Route 
-        path="/profile" 
-        element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} 
-      />
-      <Route 
-        path="/" 
-        element={<Navigate to="/onboarding-step-1" />} 
-      />
-    </Routes>
+    <Suspense fallback={<LoadingFallback />}>
+      <Routes>
+        <Route 
+          path={ROUTES.ONBOARDING_STEP_1}
+          element={<OnboardingStep1 />} 
+        />
+        <Route 
+          path={ROUTES.ONBOARDING_STEP_2}
+          element={<OnboardingStep2 />} 
+        />
+        <Route 
+          path={ROUTES.WELCOME}
+          element={<Welcome />} 
+        />
+        <Route 
+          path={ROUTES.LOGIN}
+          element={isAuthenticated ? <Navigate to={ROUTES.DASHBOARD} /> : <Login />} 
+        />
+        <Route 
+          path={ROUTES.REGISTRATION}
+          element={isAuthenticated ? <Navigate to={ROUTES.DASHBOARD} /> : <Registration />} 
+        />
+        <Route 
+          path={ROUTES.DASHBOARD}
+          element={isAuthenticated ? <Dashboard /> : <Navigate to={ROUTES.LOGIN} />} 
+        />
+        <Route 
+          path={ROUTES.MARKET_WATCH}
+          element={isAuthenticated ? <MarketWatch /> : <Navigate to={ROUTES.LOGIN} />} 
+        />
+        <Route 
+          path={ROUTES.ORDER_TRADE}
+          element={isAuthenticated ? <OrderTrade /> : <Navigate to={ROUTES.LOGIN} />} 
+        />
+        <Route 
+          path={ROUTES.ORDERS}
+          element={isAuthenticated ? <Orders /> : <Navigate to={ROUTES.LOGIN} />} 
+        />
+        <Route 
+          path={ROUTES.PORTFOLIO}
+          element={isAuthenticated ? <Portfolio /> : <Navigate to={ROUTES.LOGIN} />} 
+        />
+        <Route 
+          path={ROUTES.TOOLS}
+          element={isAuthenticated ? <Tools /> : <Navigate to={ROUTES.LOGIN} />} 
+        />
+        <Route 
+          path={ROUTES.PROFILE}
+          element={isAuthenticated ? <Profile /> : <Navigate to={ROUTES.LOGIN} />} 
+        />
+        <Route 
+          path={ROUTES.ROOT}
+          element={<Navigate to={ROUTES.ONBOARDING_STEP_1} />} 
+        />
+      </Routes>
+    </Suspense>
   );
 }
 
@@ -88,16 +98,20 @@ function AppContent() {
 
   // Show splash screen only on first visit
   if (showSplash && !hasSeenSplash) {
-    return <SplashScreen onFinish={handleSplashFinish} />;
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <SplashScreen onFinish={handleSplashFinish} />
+      </Suspense>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-slate-900">
       <AppRoutes />
       <Toaster 
         position="top-right"
         toastOptions={{
-          duration: 4000,
+          duration: TOAST_DURATION.MEDIUM,
           style: {
             background: '#363636',
             color: '#fff',
@@ -110,11 +124,13 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

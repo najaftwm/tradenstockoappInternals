@@ -1,16 +1,12 @@
 import axios from 'axios';
+import config from '../config';
+import logger from '../utils/logger';
+import { APIError } from '../utils/errorHandler';
 
-// Base API URL
-// - In production (https), default to same-origin proxy "/api" to avoid mixed-content
-// - Allow override via Vite env: VITE_API_BASE_URL
-// - In dev (http), fall back to the direct IP endpoint
- const API_BASE_URL = 'https://www.api.tradenstocko.com/api/';
-//const API_BASE_URL = 'http://localhost:5000/api/';
-
-// Create axios instance
+// Create axios instance with configuration
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
+  baseURL: config.api.baseURL,
+  timeout: config.api.timeout,
   headers: {
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
@@ -19,11 +15,26 @@ const api = axios.create({
 
 // Request interceptor
 api.interceptors.request.use(
-  (config) => {
+  (requestConfig) => {
+    // Log API requests in development
+    if (config.env.isDevelopment) {
+      logger.debug('API Request:', {
+        method: requestConfig.method,
+        url: requestConfig.url,
+        params: requestConfig.params,
+      });
+    }
+    
     // Add any auth tokens here if needed
-    return config;
+    // const token = localStorage.getItem('authToken');
+    // if (token) {
+    //   requestConfig.headers.Authorization = `Bearer ${token}`;
+    // }
+    
+    return requestConfig;
   },
   (error) => {
+    logger.error('API Request Error:', error);
     return Promise.reject(error);
   }
 );
@@ -31,10 +42,39 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
+    // Log API responses in development
+    if (config.env.isDevelopment) {
+      logger.debug('API Response:', {
+        url: response.config.url,
+        status: response.status,
+        data: response.data,
+      });
+    }
+    
     return response;
   },
   (error) => {
-    console.error('API Error:', error);
+    // Enhanced error logging
+    const errorDetails = {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      message: error.message,
+      data: error.response?.data,
+    };
+    
+    logger.apiError(error.config?.url || 'Unknown', error, errorDetails);
+    
+    // Transform error to APIError for consistent handling
+    if (error.response) {
+      const apiError = new APIError(
+        error.response.data?.message || error.message,
+        error.response.status,
+        error.response.data
+      );
+      return Promise.reject(apiError);
+    }
+    
     return Promise.reject(error);
   }
 );
@@ -140,9 +180,9 @@ export const tradingAPI = {
         }
       }
       
-      // Fallback to default value '4355' if still no refId
+      // Fallback to default value from config
       if (!refIdToUse || refIdToUse === '') {
-        refIdToUse = '4355';
+        refIdToUse = config.defaults.refId;
       }
       
       const response = await api.get('/getmarkettime/', {
@@ -226,12 +266,12 @@ export const tradingAPI = {
         }
       }
       
-      // Fallback to fixed value '4355' for testing
+      // Fallback to default value from config
       if (!refIdToUse || refIdToUse === '' || refIdToUse === null) {
-        refIdToUse = '4355';
+        refIdToUse = config.defaults.refId;
       }
       
-      console.log('getSymbols - refIdToUse:', refIdToUse);
+      logger.debug('getSymbols - refIdToUse:', refIdToUse);
       
       // Map CRYPTO to CRYPTOCURRENCIES for database compatibility
       const mappedExchangeType = exchangeType === 'CRYPTO' ? 'CRYPTOCURRENCIES' : exchangeType;
@@ -243,7 +283,7 @@ export const tradingAPI = {
         refid: refIdToUse
       };
       
-      console.log('getSymbols - params:', params);
+      logger.debug('getSymbols - params:', params);
       
       const response = await api.get('/getMCXsymbols/', { params });
       return response.data;

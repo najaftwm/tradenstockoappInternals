@@ -6,8 +6,12 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
+    "build:prod": "VITE_DROP_CONSOLE=true vite build",
+    "preview": "vite preview",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "lint:fix": "eslint . --ext js,jsx --fix",
+    "clean": "rm -rf dist node_modules/.vite",
+    "analyze": "vite build --mode analyze"
   },
   "dependencies": {
     "axios": "^1.13.2",

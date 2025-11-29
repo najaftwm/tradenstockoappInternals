@@ -1,3 +1,8 @@
+import config from '../config';
+import logger from '../utils/logger';
+import { WebSocketError } from '../utils/errorHandler';
+import { WS_READY_STATES, WS_TIMEOUTS } from '../constants';
+
 // Global WebSocket Service - Single connection for all components
 class WebSocketService {
   constructor() {
@@ -8,7 +13,7 @@ class WebSocketService {
     this.subscribedTokens = new Set(); // Set to track current subscriptions
     this.reconnectAttempts = 0;
     this.fxReconnectAttempts = 0;
-    this.maxReconnectAttempts = 10;
+    this.maxReconnectAttempts = config.websocket.maxReconnectAttempts;
     this.isConnecting = false;
     this.fxIsConnecting = false;
     this.reconnectTimeout = null;
@@ -33,7 +38,7 @@ class WebSocketService {
     
     return () => {
       this.subscribers.delete(subscriberId);
-      console.log(`Subscriber ${subscriberId} removed`);
+      logger.debug(`Subscriber ${subscriberId} removed`);
     };
   }
 
@@ -48,7 +53,7 @@ class WebSocketService {
     
     return () => {
       this.fxSubscribers.delete(subscriberId);
-      console.log(`FX Subscriber ${subscriberId} removed`);
+      logger.debug(`FX Subscriber ${subscriberId} removed`);
     };
   }
 
@@ -63,7 +68,7 @@ class WebSocketService {
     tokenArray.forEach(token => this.subscribedTokens.add(token));
     
     if (newTokens.length > 0) {
-      console.log('New tokens to subscribe:', newTokens);
+      logger.debug('New tokens to subscribe:', newTokens);
       
       // Ensure WebSocket is connected before subscribing
       if (!this.isConnected && !this.isConnecting) {
@@ -71,20 +76,20 @@ class WebSocketService {
       }
       
       // If WebSocket is connected, send updated subscription immediately
-      if (this.isConnected && this.ws && this.ws.readyState === WebSocket.OPEN) {
+      if (this.isConnected && this.ws && this.ws.readyState === WS_READY_STATES.OPEN) {
         const allTokens = Array.from(this.subscribedTokens).join(',');
         try {
           this.ws.send(allTokens);
-          console.log(`Resubscribed to ${this.subscribedTokens.size} tokens`);
+          logger.info(`Resubscribed to ${this.subscribedTokens.size} tokens`);
         } catch (error) {
-          console.error('Error resubscribing:', error);
+          logger.wsError('resubscribe', error);
         }
       } else if (this.isConnecting) {
         // If connecting, tokens will be sent when connection opens
-        console.log('WebSocket connecting, tokens will be subscribed when ready');
+        logger.debug('WebSocket connecting, tokens will be subscribed when ready');
       }
     } else {
-      console.log('All tokens already subscribed');
+      logger.debug('All tokens already subscribed');
     }
   }
 
@@ -92,26 +97,26 @@ class WebSocketService {
   connect() {
     // Prevent multiple connection attempts
     if (this.isConnecting || this.isConnected) {
-      console.log('MCX/NSE WebSocket already connecting or connected, skipping...');
+      logger.debug('MCX/NSE WebSocket already connecting or connected, skipping...');
       return;
     }
 
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max MCX/NSE reconnection attempts reached');
+      logger.error('Max MCX/NSE reconnection attempts reached');
       return;
     }
 
     this.isConnecting = true;
-    const uri = "wss://ws.tradewingss.com/api/webapiwebsoc";
+    const uri = config.websocket.mcxNseUrl;
     
-    console.log(`Attempting MCX/NSE WebSocket connection (attempt ${this.reconnectAttempts + 1})...`);
+    logger.info(`Attempting MCX/NSE WebSocket connection (attempt ${this.reconnectAttempts + 1})...`);
     
     // Close existing connection if any
     if (this.ws) {
       try {
         this.ws.close();
       } catch (error) {
-        console.log('Error closing existing WebSocket:', error);
+        logger.debug('Error closing existing WebSocket:', error);
       }
       this.ws = null;
     }
@@ -120,16 +125,16 @@ class WebSocketService {
       this.ws = new WebSocket(uri);
       
       this.connectTimeout = setTimeout(() => {
-        if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
-          console.log('WebSocket connection timeout');
+        if (this.ws && this.ws.readyState === WS_READY_STATES.CONNECTING) {
+          logger.warn('WebSocket connection timeout');
           this.ws.close();
         }
-      }, 10000);
+      }, WS_TIMEOUTS.CONNECTION);
 
       this.ws.onopen = () => {
         clearTimeout(this.connectTimeout);
         
-        console.log('✓ MCX/NSE WebSocket connected successfully');
+        logger.info('✓ MCX/NSE WebSocket connected successfully');
         this.isConnected = true;
         this.isConnecting = false;
         this.reconnectAttempts = 0;
@@ -139,9 +144,9 @@ class WebSocketService {
           const allTokens = Array.from(this.subscribedTokens).join(',');
           try {
             this.ws.send(allTokens);
-            console.log(`Subscribed to ${this.subscribedTokens.size} tokens`);
+            logger.info(`Subscribed to ${this.subscribedTokens.size} tokens`);
           } catch (error) {
-            console.error('Error sending initial tokens:', error);
+            logger.wsError('send_initial_tokens', error);
           }
         } else {
           this.ws.send("");
@@ -232,21 +237,21 @@ class WebSocketService {
               try {
                 callback(data);
               } catch (error) {
-                console.error(`Error in subscriber ${subscriberId}:`, error);
+                logger.error(`Error in subscriber ${subscriberId}:`, error);
               }
             });
           }
         } catch (error) {
-          console.error('Error processing WebSocket data:', error);
-          console.log('Raw data:', event.data);
+          logger.error('Error processing WebSocket data:', error);
+          logger.debug('Raw data:', event.data);
         }
       };
 
       this.ws.onerror = (error) => {
         clearTimeout(this.connectTimeout);
         // Don't log error if connection is already closed (readyState 3)
-        if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
-          console.error('MCX/NSE WebSocket error:', error);
+        if (this.ws && this.ws.readyState !== WS_READY_STATES.CLOSED) {
+          logger.wsError('MCX/NSE', error);
         }
         this.isConnected = false;
         this.isConnecting = false;
@@ -257,7 +262,7 @@ class WebSocketService {
         
         // Only log if it wasn't a clean close or unexpected
         if (!event.wasClean && event.code !== 1000) {
-          console.log('MCX/NSE WebSocket disconnected', {
+          logger.warn('MCX/NSE WebSocket disconnected', {
             code: event.code,
             reason: event.reason,
             wasClean: event.wasClean
@@ -274,16 +279,16 @@ class WebSocketService {
             try {
               callback({ type: 'disconnected' });
             } catch (error) {
-              console.error('Error notifying subscriber:', error);
+              logger.error('Error notifying subscriber:', error);
             }
           });
 
           // Reconnect with exponential backoff only if we have subscribers
           if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
-            const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 30000);
+            const delay = Math.min(config.websocket.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), WS_TIMEOUTS.MAX_RECONNECT_DELAY);
             
-            console.log(`Scheduling MCX/NSE reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+            logger.info(`Scheduling MCX/NSE reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
             
             this.reconnectTimeout = setTimeout(() => {
               if (this.subscribers.size > 0) {
@@ -291,19 +296,19 @@ class WebSocketService {
               }
             }, delay);
           } else {
-            console.error('Max MCX/NSE reconnection attempts reached');
+            logger.error('Max MCX/NSE reconnection attempts reached');
           }
         }
       };
 
     } catch (error) {
-      console.error('Error creating WebSocket:', error);
+      logger.wsError('create_connection', error);
       this.isConnecting = false;
       
       // Retry with exponential backoff
       if (this.reconnectAttempts < this.maxReconnectAttempts) {
         this.reconnectAttempts++;
-        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 30000);
+        const delay = Math.min(config.websocket.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1), WS_TIMEOUTS.MAX_RECONNECT_DELAY);
         
         this.reconnectTimeout = setTimeout(() => {
           this.connect();
@@ -328,7 +333,7 @@ class WebSocketService {
       try {
         this.ws.close();
       } catch (error) {
-        console.error('Error closing WebSocket:', error);
+        logger.error('Error closing WebSocket:', error);
       }
       this.ws = null;
     }
@@ -343,26 +348,26 @@ class WebSocketService {
   connectFX() {
     // Prevent multiple connection attempts
     if (this.fxIsConnecting || this.fxIsConnected) {
-      console.log('FX WebSocket already connecting or connected, skipping...');
+      logger.debug('FX WebSocket already connecting or connected, skipping...');
       return;
     }
 
     if (this.fxReconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max FX reconnection attempts reached');
+      logger.error('Max FX reconnection attempts reached');
       return;
     }
 
     this.fxIsConnecting = true;
-    const uri = "wss://www.fxsoc.tradenstocko.com:8001/ws";
+    const uri = config.websocket.fxUrl;
     
-    console.log(`Attempting FX WebSocket connection (attempt ${this.fxReconnectAttempts + 1})...`);
+    logger.info(`Attempting FX WebSocket connection (attempt ${this.fxReconnectAttempts + 1})...`);
     
     // Close existing connection if any
     if (this.fxWs) {
       try {
         this.fxWs.close();
       } catch (error) {
-        console.log('Error closing existing FX WebSocket:', error);
+        logger.debug('Error closing existing FX WebSocket:', error);
       }
       this.fxWs = null;
     }
@@ -371,16 +376,16 @@ class WebSocketService {
       this.fxWs = new WebSocket(uri);
       
       this.fxConnectTimeout = setTimeout(() => {
-        if (this.fxWs && this.fxWs.readyState === WebSocket.CONNECTING) {
-          console.log('FX WebSocket connection timeout');
+        if (this.fxWs && this.fxWs.readyState === WS_READY_STATES.CONNECTING) {
+          logger.warn('FX WebSocket connection timeout');
           this.fxWs.close();
         }
-      }, 10000);
+      }, WS_TIMEOUTS.CONNECTION);
 
       this.fxWs.onopen = () => {
         clearTimeout(this.fxConnectTimeout);
         
-        console.log('✓ FX WebSocket connected successfully');
+        logger.info('✓ FX WebSocket connected successfully');
         this.fxIsConnected = true;
         this.fxIsConnecting = false;
         this.fxReconnectAttempts = 0;
@@ -414,19 +419,19 @@ class WebSocketService {
             try {
               callback(data);
             } catch (error) {
-              console.error(`Error in FX subscriber ${subscriberId}:`, error);
+              logger.error(`Error in FX subscriber ${subscriberId}:`, error);
             }
           });
         } catch (error) {
-          console.error('Error parsing FX WebSocket data:', error);
+          logger.error('Error parsing FX WebSocket data:', error);
         }
       };
 
       this.fxWs.onerror = (error) => {
         clearTimeout(this.fxConnectTimeout);
         // Don't log error if connection is already closed
-        if (this.fxWs && this.fxWs.readyState !== WebSocket.CLOSED) {
-          console.error('FX WebSocket error:', error);
+        if (this.fxWs && this.fxWs.readyState !== WS_READY_STATES.CLOSED) {
+          logger.wsError('FX', error);
         }
         this.fxIsConnected = false;
         this.fxIsConnecting = false;
@@ -437,7 +442,7 @@ class WebSocketService {
         
         // Only log if it wasn't a clean close
         if (!event.wasClean && event.code !== 1000) {
-          console.log('FX WebSocket disconnected', {
+          logger.warn('FX WebSocket disconnected', {
             code: event.code,
             reason: event.reason,
             wasClean: event.wasClean
@@ -454,16 +459,16 @@ class WebSocketService {
             try {
               callback({ type: 'disconnected' });
             } catch (error) {
-              console.error('Error notifying FX subscriber:', error);
+              logger.error('Error notifying FX subscriber:', error);
             }
           });
 
           // Reconnect with exponential backoff only if we have subscribers
           if (this.fxReconnectAttempts < this.maxReconnectAttempts) {
             this.fxReconnectAttempts++;
-            const delay = Math.min(1000 * Math.pow(2, this.fxReconnectAttempts - 1), 30000);
+            const delay = Math.min(config.websocket.reconnectDelay * Math.pow(2, this.fxReconnectAttempts - 1), WS_TIMEOUTS.MAX_RECONNECT_DELAY);
             
-            console.log(`Scheduling FX reconnect in ${delay}ms (attempt ${this.fxReconnectAttempts}/${this.maxReconnectAttempts})`);
+            logger.info(`Scheduling FX reconnect in ${delay}ms (attempt ${this.fxReconnectAttempts}/${this.maxReconnectAttempts})`);
             
             this.fxReconnectTimeout = setTimeout(() => {
               if (this.fxSubscribers.size > 0) {
@@ -471,19 +476,19 @@ class WebSocketService {
               }
             }, delay);
           } else {
-            console.error('Max FX reconnection attempts reached');
+            logger.error('Max FX reconnection attempts reached');
           }
         }
       };
 
     } catch (error) {
-      console.error('Error creating FX WebSocket:', error);
+      logger.wsError('create_fx_connection', error);
       this.fxIsConnecting = false;
       
       // Retry with exponential backoff only if we have subscribers
       if (this.fxSubscribers.size > 0 && this.fxReconnectAttempts < this.maxReconnectAttempts) {
         this.fxReconnectAttempts++;
-        const delay = Math.min(1000 * Math.pow(2, this.fxReconnectAttempts - 1), 30000);
+        const delay = Math.min(config.websocket.reconnectDelay * Math.pow(2, this.fxReconnectAttempts - 1), WS_TIMEOUTS.MAX_RECONNECT_DELAY);
         
         this.fxReconnectTimeout = setTimeout(() => {
           if (this.fxSubscribers.size > 0) {

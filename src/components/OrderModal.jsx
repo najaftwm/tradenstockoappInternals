@@ -3,6 +3,7 @@ import { X, TrendingUp, TrendingDown, Clock, AlertCircle } from 'lucide-react';
 import { tradingAPI } from '../services/api';
 import ChartModal from './ChartModal';
 import { getCachedKYCStatus, fetchAndCacheKYCStatus } from '../utils/kycUtils';
+import { MiniLoader } from './LoadingSpinner';
 
 const OrderModal = ({ 
   isOpen, 
@@ -1735,7 +1736,7 @@ const OrderModal = ({
             >
               {orderLoading && placingOrderType === 'SELL' ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  <MiniLoader />
                   <span>Placing...</span>
                 </>
               ) : (
@@ -1763,7 +1764,7 @@ const OrderModal = ({
             >
               {orderLoading && placingOrderType === 'BUY' ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  <MiniLoader />
                   <span>Placing...</span>
                 </>
               ) : (
