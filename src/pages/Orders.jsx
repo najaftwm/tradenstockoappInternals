@@ -6,7 +6,7 @@ import { tradingAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { useWebSocket } from '../hooks/useWebSocket';
 import webSocketService from '../services/websocketService';
-import { InlineLoader } from '../components/LoadingSpinner';
+import { InlineLoader } from '../components/LoadingSpinner.jsx';
 
 const getCachedExchangeRate = () => {
   if (typeof window === 'undefined' || !window.localStorage) return null;

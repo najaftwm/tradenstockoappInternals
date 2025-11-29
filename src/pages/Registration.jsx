@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { ArrowLeft, Phone, Shield, User, FileText } from 'lucide-react';
 import { authAPI } from '../services/api';
 import logo from '../assets/logo.svg';
-import { ButtonLoader } from '../components/LoadingSpinner';
+import { ButtonLoader } from '../components/LoadingSpinner.jsx';
 
 const Registration = () => {
   const [currentStep, setCurrentStep] = useState(1); // 1: Mobile, 2: OTP, 3: Part 1 (Basic Info), 4: Part 2 (KYC Info)

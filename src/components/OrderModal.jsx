@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { X, TrendingUp, TrendingDown, Clock, AlertCircle } from 'lucide-react';
 import { tradingAPI } from '../services/api';
-import ChartModal from './ChartModal';
+import ChartModal from './ChartModal.jsx';
 import { getCachedKYCStatus, fetchAndCacheKYCStatus } from '../utils/kycUtils';
-import { MiniLoader } from './LoadingSpinner';
+import { MiniLoader } from './LoadingSpinner.jsx';
 
 const OrderModal = ({ 
   isOpen, 

@@ -2,9 +2,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
-import ErrorBoundary from './components/ErrorBoundary';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import { ROUTES, TOAST_DURATION } from './constants';
-import { FullPageLoader } from './components/LoadingSpinner';
+import { FullPageLoader } from './components/LoadingSpinner.jsx';
 
 // Lazy load pages for better performance
 const Login = lazy(() => import('./pages/Login'));

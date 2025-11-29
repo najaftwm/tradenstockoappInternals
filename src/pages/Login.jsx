@@ -6,7 +6,7 @@ import { authAPI } from '../services/api';
 import { generateDeviceId, getDeviceIP } from '../utils/deviceUtils';
 import { useAuth } from '../hooks/useAuth.jsx';
 import logo from '../assets/logo.svg';
-import { ButtonLoader } from '../components/LoadingSpinner';
+import { ButtonLoader } from '../components/LoadingSpinner.jsx';
 
 
 const Login = () => {

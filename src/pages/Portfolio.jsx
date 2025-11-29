@@ -18,7 +18,7 @@ import {
 import { tradingAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import webSocketService from '../services/websocketService';
-import { FullPageLoader } from '../components/LoadingSpinner';
+import { FullPageLoader } from '../components/LoadingSpinner.jsx';
 
 const getCachedExchangeRate = () => {
   if (typeof window === 'undefined' || !window.localStorage) return null;

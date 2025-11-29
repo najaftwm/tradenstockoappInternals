@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, Plus, TrendingUp, ArrowLeft, X, Check, TrendingDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { tradingAPI } from '../services/api';
-import OrderModal from '../components/OrderModal';
+import OrderModal from '../components/OrderModal.jsx';
 import PremiumLoader from '../components/PremiumLoader';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { FullPageLoader, InlineLoader } from '../components/LoadingSpinner';
+import { FullPageLoader, InlineLoader } from '../components/LoadingSpinner.jsx';
 
 const MarketWatch = () => {
   const navigate = useNavigate();
